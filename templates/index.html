@@ -5,9 +5,10 @@
     <title>Title</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.0/socket.io.js"></script>
     <script type="text/javascript" charset="utf-8">
+        let socket;
         function fillData(arg){
             if ('canopy_open' in arg) {
-                    document.getElementById('canopy_open').innerHTML = arg['canopy_open'];
+                    document.getElementById('canopy_open').value = arg['canopy_open'];
                 }
                 if ('light' in arg) {
                     document.getElementById('light').innerHTML = arg['light'];
@@ -37,10 +38,13 @@
             }
         }
 
-        function init() {
-            let url = 'localhost:5000/'
+        function update_canopy(){
+            // TODO fix logic here
+            socket.emit('update_canopy', !document.getElementById('canopy_open').value)
+        }
 
-            var socket = io(null, {
+        function init() {
+            socket = io(null, {
                 port: 5000,
                 transports: ['websocket']
             });
@@ -58,24 +62,13 @@
                 });
             });
 
-            socket.on('connect', async function (socket){
-                let data = await fetch("http://" + url + 'api/data');
-                let thresholds = await fetch("http://" + url + 'api/thresholds');
-                fillData(await data.json())
-                fillThresholds(await thresholds.json())
-            });
-
             socket.on('data', function (arg) {
                 fillData(arg)
             });
 
-            socket.on('thresholds', function (arg){
-
-            })
-
-
-            // update thresholds
-            // update open/close
+            socket.on('thresholds', function (arg) {
+                fillThresholds(arg)
+            });
         }
     </script>
 

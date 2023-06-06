@@ -40,7 +40,7 @@ def all():
         'wind': data.wind,
         'rain': data.rain,
         'canopy_open': data.canopy_open
-    })
+    }, broadcast=True)
 
     return Response(status=204)
 
@@ -56,12 +56,12 @@ def update_canopy(canopy_open):
         'wind': data.wind,
         'rain': data.rain,
         'canopy_open': data.canopy_open
-    })
+    }, broadcast=True)
 
 
-@app.route('/api/data', methods=['GET'])
-def get_data():
-    return jsonify({
+@socketio.on('connect')
+def connection():
+    emit('data', {
         'output_solar': data.output_solar,
         'light': data.light,
         'wind': data.wind,
@@ -69,15 +69,11 @@ def get_data():
         'canopy_open': data.canopy_open
     })
 
-
-@app.route('/api/thresholds', methods=['GET'])
-def get_thresholds():
-    return jsonify({
+    emit('thresholds', {
         'min_light': data.min_light,
         'max_wind': data.max_wind,
         'max_rain': data.max_rain
     })
-
 
 @socketio.on('update_thresholds')
 def update_thresholds(thresholds):
@@ -94,7 +90,7 @@ def update_thresholds(thresholds):
         'min_light': data.min_light,
         'max_wind': data.max_wind,
         'max_rain': data.max_rain
-    })
+    }, broadcast=True)
 
 
 if __name__ == '__main__':
