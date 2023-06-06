@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.0/socket.io.js"
+            integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
+            crossorigin="anonymous"></script>
+    <script type="text/javascript" charset="utf-8">
+        var socket = io("ws://localhost:5000");
+        // solar panel open/close
+        // light
+        // output solar
+        // rain
+        // wind
+        document.getElementById('thresholds').addEventListener('submit', function(e){
+            e.preventDefault();
+            socket.emit('thresholds', {
+                'min_light': document.getElementById('min_light').value,
+                'max_wind': document.getElementById('max_wind').value,
+                'max_rain': document.getElementById('max_rain').value
+            });
+        });
+
+        socket.on('data', function(arg) {
+            if('canopy_open' in arg){
+                document.getElementById('canopy_open').innerHTML = arg['canopy_open'];
+            }
+            if('light' in arg){
+                document.getElementById('light').innerHTML = arg['light'];
+            }
+            if('output_solar' in arg){
+                document.getElementById('solar_energy').innerHTML = arg['solar_energy'];
+            }
+            if('rain' in arg){
+                document.getElementById('rain').innerHTML = arg['rain'];
+            }
+            if('wind' in arg){
+                document.getElementById('wind').innerHTML = arg['wind'];
+            }
+        });
+
+
+        // update thresholds
+        // update open/close
+    </script>
+
+</head>
+
+<body style="width: 100%; height: 100%;overflow: hidden">
+    <h1>Title</h1>
+    <div style="display: flex; flex-direction: row">
+        <p id="canopy_open"></p>
+        <p id="light"></p>
+        <p id="output_solar"></p>
+        <p id="rain"></p>
+        <p id="wind"></p>
+    </div>
+    <div style="display: flex; flex-direction: row">
+        <form id="thresholds">
+            <input id="min_light" type="number"/>
+            <input id="max_wind" type="number"/>
+            <input id="max_rain" type="number"/>
+        </form>
+    </div>
+</body>
+</html>
