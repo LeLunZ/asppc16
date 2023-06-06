@@ -1,0 +1,18 @@
+GET http://127.0.0.1:5000/api/data
+```
+
+
+### create post request
+POST http://127.0.0.1:5000/api/data
+Content-Type: application/json
+
+{
+    "canopy_open": true,
+    "light": 1,
+    "output_solar": 2,
+    "rain": 3,
+    "wind": 4
+}
+
+### create post request
+GET http://127.0.0.1:5000/api/data
