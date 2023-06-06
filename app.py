@@ -4,16 +4,16 @@ from flask_cors import CORS
 
 from models.dataholder import DataHolder
 
-app = Flask(__name__, static_folder='./templates', static_url_path='')
+app = Flask(__name__, static_folder='./templates')
 CORS(app)
-socketio = SocketIO(app, cors_allowed_origins='*')
-
+socketio = SocketIO(app, cors_allowed_origins='*', async_mode='eventlet')
 data = DataHolder()
+
 
 @app.route('/', methods=['GET'])
 def hello_world():  # put application's code here
-    print('hello world')
     return render_template('index.html')
+
 
 @app.route('/api/data', methods=['POST'])
 def all():
@@ -70,11 +70,25 @@ def get_data():
     })
 
 
+@app.route('/api/thresholds', methods=['GET'])
+def get_thresholds():
+    return jsonify({
+        'min_light': data.min_light,
+        'max_wind': data.max_wind,
+        'max_rain': data.max_rain
+    })
+
+
 @socketio.on('update_thresholds')
-def update_data(min_light, max_wind, max_rain):
-    data.min_light = min_light
-    data.max_rain = max_rain
-    data.max_wind = max_wind
+def update_thresholds(thresholds):
+    if('min_light' in thresholds):
+        data.min_light = thresholds['min_light']
+
+    if ('max_wind' in thresholds):
+        data.max_wind = thresholds['max_wind']
+
+    if ('max_rain' in thresholds):
+        data.max_rain = thresholds['max_rain']
 
     emit('thresholds', {
         'min_light': data.min_light,
@@ -82,25 +96,6 @@ def update_data(min_light, max_wind, max_rain):
         'max_rain': data.max_rain
     })
 
-
-@socketio.on('connection')
-def connection():
-    request.namespace.emit('data', {
-        'output_solar': data.output_solar,
-        'light': data.light,
-        'wind': data.wind,
-        'rain': data.rain,
-        'canopy_open': data.canopy_open
-    })
-
-
-@app.route('/api/thresholds', methods=['POST'])
-def thresholds():
-    return jsonify({
-        'min_light': data.min_light,
-        'max_wind': data.max_wind,
-        'max_rain': data.max_rain
-    })
 
 if __name__ == '__main__':
     socketio.run(app)

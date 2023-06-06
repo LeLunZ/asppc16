@@ -5,31 +5,15 @@
     <title>Title</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.0/socket.io.js"></script>
     <script type="text/javascript" charset="utf-8">
-        function init() {
-            var socket = io("http://localhost:5000");
-            // solar panel open/close
-            // light
-            // output solar
-            // rain
-            // wind
-            document.getElementById('thresholds').addEventListener('submit', function (e) {
-                e.preventDefault();
-                socket.emit('thresholds', {
-                    'min_light': document.getElementById('min_light').value,
-                    'max_wind': document.getElementById('max_wind').value,
-                    'max_rain': document.getElementById('max_rain').value
-                });
-            });
-
-            socket.on('data', function (arg) {
-                if ('canopy_open' in arg) {
+        function fillData(arg){
+            if ('canopy_open' in arg) {
                     document.getElementById('canopy_open').innerHTML = arg['canopy_open'];
                 }
                 if ('light' in arg) {
                     document.getElementById('light').innerHTML = arg['light'];
                 }
                 if ('output_solar' in arg) {
-                    document.getElementById('solar_energy').innerHTML = arg['solar_energy'];
+                    document.getElementById('output_solar').innerHTML = arg['output_solar'];
                 }
                 if ('rain' in arg) {
                     document.getElementById('rain').innerHTML = arg['rain'];
@@ -37,7 +21,57 @@
                 if ('wind' in arg) {
                     document.getElementById('wind').innerHTML = arg['wind'];
                 }
+        }
+
+        function fillThresholds(arg){
+            if ('min_light' in arg){
+                document.getElementById('min_light').value = arg['min_light']
+            }
+
+            if ('max_rain' in arg){
+                document.getElementById('max_rain').value = arg['max_rain']
+            }
+
+            if ('max_wind' in arg){
+                document.getElementById('max_wind').value = arg['max_wind']
+            }
+        }
+
+        function init() {
+            let url = 'localhost:5000/'
+
+            var socket = io(null, {
+                port: 5000,
+                transports: ['websocket']
             });
+            // solar panel open/close
+            // light
+            // output solar
+            // rain
+            // wind
+            document.getElementById('thresholds').addEventListener('submit', function (e) {
+                e.preventDefault();
+                socket.emit('update_thresholds', {
+                    'min_light': document.getElementById('min_light').value,
+                    'max_wind': document.getElementById('max_wind').value,
+                    'max_rain': document.getElementById('max_rain').value
+                });
+            });
+
+            socket.on('connect', async function (socket){
+                let data = await fetch("http://" + url + 'api/data');
+                let thresholds = await fetch("http://" + url + 'api/thresholds');
+                fillData(await data.json())
+                fillThresholds(await thresholds.json())
+            });
+
+            socket.on('data', function (arg) {
+                fillData(arg)
+            });
+
+            socket.on('thresholds', function (arg){
+
+            })
 
 
             // update thresholds
@@ -61,6 +95,7 @@
         <input id="min_light" type="number"/>
         <input id="max_wind" type="number"/>
         <input id="max_rain" type="number"/>
+        <input type="submit" value="Update" />
     </form>
 </div>
 </body>
