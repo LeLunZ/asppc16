@@ -4,15 +4,13 @@ from flask_socketio import SocketIO, emit
 from models.dataholder import DataHolder
 
 app = Flask(__name__)
-socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins='*')
 
 data = DataHolder()
-
 
 @app.route('/')
 def hello_world():  # put application's code here
     return 'Hello World!'
-
 
 @app.route('/api/data', methods=['POST'])
 def all():
@@ -100,7 +98,6 @@ def thresholds():
         'max_wind': data.max_wind,
         'max_rain': data.max_rain
     })
-
 
 if __name__ == '__main__':
     socketio.run(app)
