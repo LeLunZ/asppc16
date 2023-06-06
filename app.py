@@ -1,16 +1,19 @@
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify, Response, render_template, send_from_directory, redirect
 from flask_socketio import SocketIO, emit
+from flask_cors import CORS
 
 from models.dataholder import DataHolder
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='./templates', static_url_path='')
+CORS(app)
 socketio = SocketIO(app, cors_allowed_origins='*')
 
 data = DataHolder()
 
-@app.route('/')
+@app.route('/', methods=['GET'])
 def hello_world():  # put application's code here
-    return 'Hello World!'
+    print('hello world')
+    return render_template('index.html')
 
 @app.route('/api/data', methods=['POST'])
 def all():
