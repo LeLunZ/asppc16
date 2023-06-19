@@ -2,3 +2,5 @@ flask==2.0.2
 flask-cors==3.0.10
 flask-socketio==5.3.4
 eventlet==0.33.3
+pyserial==3.5
+explorerhat==0.5.1

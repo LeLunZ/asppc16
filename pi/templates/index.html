@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="{{url_for('static', filename='socket.io_2.5.0.js')}}"></script>
+    <script type="text/javascript" charset="utf-8">
+        let socket = io(null, {
+            port: 5000,
+            transports: ['websocket']
+        });
+        
+        socket.on('error', data => {
+            console.error(data);
+        });
+
+        function init() {            
+            const manualOpenButton = document.getElementById('manual_open');
+            const manualCloseButton = document.getElementById('manual_close');
+            const manualOffButton = document.getElementById('manual_off');
+            
+            const windLowerThresholdInput = document.getElementById('wind_lower_threshold');
+            const windUpperThresholdInput = document.getElementById('wind_upper_threshold');
+            const precipitationLowerThresholdInput = document.getElementById('precipitation_lower_threshold');
+            const precipitationUpperThresholdInput = document.getElementById('precipitation_upper_threshold');
+            const lightLowerThresholdInput = document.getElementById('light_lower_threshold');
+            const lightUpperThresholdInput = document.getElementById('light_upper_threshold');
+            
+            const outputSolarDisplay = document.getElementById('output_solar');
+            const canopyStateDisplay = document.getElementById('canopy_state');
+            const manualModeDisplay = document.getElementById('manual_mode');
+            const environmentEvalDisplay = document.getElementById('environment_eval');
+            const windDisplay = document.getElementById('wind');
+            const precipitationDisplay = document.getElementById('precipitation');
+            const lightDisplay = document.getElementById('light');
+            
+            manualOpenButton.addEventListener('click', e => {
+                e.preventDefault();
+                socket.emit('manual_open');
+                manualOffButton.disabled = false;
+            });
+            
+            manualCloseButton.addEventListener('click', e => {
+                e.preventDefault();
+                socket.emit('manual_close');
+                manualOffButton.disabled = false;
+            });
+            
+            manualOffButton.addEventListener('click', e => {
+                e.preventDefault();
+                socket.emit('manual_off');
+                manualOffButton.disabled = true;
+            });
+            
+            socket.on('update', data => {
+                if (data.manual) {
+                    manualOffButton.disabled = false;
+                    manualModeDisplay.innerHTML = 'On';
+                } else {
+                    manualOffButton.disabled = true;
+                    manualModeDisplay.innerHTML = 'Off';
+                }
+                outputSolarDisplay.innerHTML = data.output_solar;
+                canopyStateDisplay.innerHTML = data.canopy_state;
+                environmentEvalDisplay.innerHTML = data.environment_eval;
+                windDisplay.innerHTML = data.wind;
+                precipitationDisplay.innerHTML = data.precipitation;
+                lightDisplay.innerHTML = data.light;
+                
+                windLowerThresholdInput.value = data.wind_lower_threshold;
+                windUpperThresholdInput.value = data.wind_upper_threshold;
+                precipitationLowerThresholdInput.value = data.precipitation_lower_threshold;
+                precipitationUpperThresholdInput.value = data.precipitation_upper_threshold;
+                lightUpperThresholdInput.value = data.light_upper_threshold;
+                lightLowerThresholdInput.value = data.light_lower_threshold;
+            });
+            
+            socket.emit('request_update');
+            
+            windLowerThresholdInput.addEventListener('change', e => {
+                e.preventDefault();
+                const v = parseFloat(windLowerThresholdInput.value);
+                if (!Number.isNaN(v))
+                    socket.emit('update_wind_lower_threshold', v);
+            });
+            windUpperThresholdInput.addEventListener('change', e => {
+                e.preventDefault();
+                const v = parseFloat(windUpperThresholdInput.value);
+                if (!Number.isNaN(v))
+                    socket.emit('update_wind_upper_threshold', v);
+            });
+            precipitationLowerThresholdInput.addEventListener('change', e => {
+                e.preventDefault();
+                const v = parseFloat(precipitationLowerThresholdInput.value);
+                if (!Number.isNaN(v))
+                    socket.emit('update_precipitation_lower_threshold', v);
+            });
+            precipitationUpperThresholdInput.addEventListener('change', e => {
+                e.preventDefault();
+                const v = parseFloat(precipitationUpperThresholdInput.value);
+                if (!Number.isNaN(v))
+                    socket.emit('update_precipitation_upper_threshold', v);
+            });
+            lightUpperThresholdInput.addEventListener('change', e => {
+                e.preventDefault();
+                const v = parseFloat(lightUpperThresholdInput.value);
+                if (!Number.isNaN(v))
+                    socket.emit('update_light_upper_threshold', v);
+            });
+            lightLowerThresholdInput.addEventListener('change', e => {
+                e.preventDefault();
+                const v = parseFloat(lightLowerThresholdInput.value);
+                if (!Number.isNaN(v))
+                    socket.emit('update_light_lower_threshold', v);
+            });
+        }
+    </script>
+
+</head>
+
+<body onload="init()">
+<h1>Solar Canopy Control</h1>
+<table>
+    <tr>
+        <th>Solar Output</th>
+        <th>Canopy state</th>
+        <th>Manual mode</th>
+        <th>Environment evaluation</th>
+        <th>Wind</th>
+        <th>Precipitation [0-1]</th>
+        <th>Light [0-1]</th>
+    </tr>
+    <tr>
+        <td><span id="output_solar"></span> V</td>
+        <td id="canopy_state"></td>
+        <td id="manual_mode"></td>
+        <td id="environment_eval"></td>
+        <td><span id="wind"></span> m/s</td>
+        <td id="precipitation"></td>
+        <td id="light"></td>
+    </tr>
+</table>
+<div>
+    <p>
+        Wind:
+        <input id="wind_lower_threshold" type="number" min="0" max="20" step="0.01"/>
+        <input id="wind_upper_threshold" type="number" min="0" max="20" step="0.01"/>
+    </p>
+    <p>
+        Precipitation:
+        <input id="precipitation_lower_threshold" type="number" min="0" max="1" step="0.001"/>
+        <input id="precipitation_upper_threshold" type="number" min="0" max="1" step="0.001"/>
+    </p>
+    <p>
+        Light:
+        <input id="light_upper_threshold" type="number" min="0" max="1" step="0.001"/>
+        <input id="light_lower_threshold" type="number" min="0" max="1" step="0.001"/>
+    </p>
+    <p>
+        Manual control: 
+        <button id="manual_open">Open</button> 
+        <button id="manual_close">Close</button> 
+        <button id="manual_off">Automatic</button>
+    </p>
+</div>
+</body>
+</html>
